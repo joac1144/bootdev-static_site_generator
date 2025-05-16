@@ -11,9 +11,9 @@ class TextType(Enum):
 
 class TextNode:
     def __init__(self, text, text_type: TextType, url=None):
-        self.text = text
-        self.text_type = text_type
-        self.url = url
+        self.text: str = text
+        self.text_type: TextType = text_type
+        self.url: str = url
     
     def __eq__(self, other):
         return (
@@ -23,7 +23,7 @@ class TextNode:
         )
     
     def __repr__(self):
-        return f"TextNode({self.text}, {self.text_type.value}, {self.url})"
+        return f"TextNode(\"{self.text}\", {self.text_type}, {'\"' + self.url + '\"' if self.url else None})"
 
     def to_html_node(self):
         match self.text_type:
