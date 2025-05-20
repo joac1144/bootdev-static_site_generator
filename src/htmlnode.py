@@ -1,13 +1,15 @@
-from blocks import BlockType, markdown_to_blocks, block_to_blocktype
+from __future__ import annotations
+
+type Props = dict[str, str|None]|None
 
 class HTMLNode:
-    def __init__(self, tag=None, value= None, children=None, props=None):
+    def __init__(self, tag: str|None = None, value: str|None = None, children: list[HTMLNode]|None = None, props: Props = None):
         self.tag = tag
         self.value = value
         self.children = children
         self.props = props
     
-    def to_html(self):
+    def to_html(self) -> str:
         raise NotImplementedError()
     
     def props_to_html(self):
@@ -20,7 +22,7 @@ class HTMLNode:
         return f"HTMLNode({self.tag}, {self.value}, {self.children}, {self.props})"
 
 class LeafNode(HTMLNode):
-    def __init__(self, tag, value, props=None):
+    def __init__(self, tag: str|None, value: str|None, props: Props = None):
         super().__init__(tag, value, None, props)
 
     def to_html(self):
@@ -29,9 +31,12 @@ class LeafNode(HTMLNode):
         if self.tag is None:
             return self.value
         return f"<{self.tag}{"" if self.props is None else " "}{self.props_to_html()}>{self.value}</{self.tag}>"
+    
+    def __repr__(self):
+        return f"LeafNode({self.tag}, {self.value}, {self.props})"
 
 class ParentNode(HTMLNode):
-    def __init__(self, tag, children, props=None):
+    def __init__(self, tag: str|None, children: list[HTMLNode], props: Props = None):
         super().__init__(tag, None, children, props)
     
     def to_html(self):
@@ -44,40 +49,5 @@ class ParentNode(HTMLNode):
             child_html += child.to_html()
         return f"<{self.tag}{"" if self.props is None else " "}{self.props_to_html()}>{child_html}</{self.tag}>"
     
-def markdown_to_html_node(markdown: str):
-    blocks = markdown_to_blocks(markdown)
-
-    block_nodes = []
-
-    for block in blocks:
-        block_node = block_to_html_node(block)
-        block_nodes.append(block_node)
-
-    return ParentNode("div", block_nodes)
-        
-
-def block_to_html_node(block: str):
-    blocktype = block_to_blocktype(block)
-    if blocktype == BlockType.PARAGRAPH:
-        return ParentNode("p", text_to_children(block))
-    elif blocktype == BlockType.HEADING:
-        level = block.count("#")
-        return ParentNode(f"h{level}", text_to_children(block))
-    elif blocktype == BlockType.CODE:
-        return ParentNode("pre", [LeafNode("code", block)])
-    elif blocktype == BlockType.QUOTE:
-        return ParentNode("blockquote", text_to_children(block))
-    elif blocktype == BlockType.UNORDERED_LIST:
-        return ParentNode("ul", text_to_children(block))
-    elif blocktype == BlockType.ORDERED_LIST:
-        return ParentNode("ol", text_to_children(block))
-    else:
-        raise Exception("Invalid block type")
-
-def text_to_children(text: str):
-    from helpers import text_to_textnodes
-    html_nodes = []
-    text_nodes = text_to_textnodes(text)
-    for text_node in text_nodes:
-        html_nodes.append(text_node.to_html_node())
-    return html_nodes
+    def __repr__(self):
+        return f"ParentNode({self.tag}, children: {self.children}, {self.props})"

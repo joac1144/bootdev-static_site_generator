@@ -1,20 +1,20 @@
 import unittest
-from src.htmlnode import HTMLNode, LeafNode, ParentNode, markdown_to_html_node
+from src.htmlnode import HTMLNode, LeafNode, ParentNode
 
 class TestHTMLNode(unittest.TestCase):
     def test_props_to_html_match(self):
-        node = HTMLNode("tag1", "value1", "children1", {"key": "value"})
-        node2 = HTMLNode("tag1", "value1", "children1", {"key": "value"})
+        node = HTMLNode("tag1", "value1", None, {"key": "value"})
+        node2 = HTMLNode("tag1", "value1", None, {"key": "value"})
         self.assertEqual(node.props_to_html(), node2.props_to_html())
     
     def test_props_to_html_neq(self):
-        node = HTMLNode("tag1", "value1", "children1", {"key": "value"})
-        node2 = HTMLNode("tag1", "value1", "children1", {"key": "value2"})
+        node = HTMLNode("tag1", "value1", None, {"key": "value"})
+        node2 = HTMLNode("tag1", "value1", None, {"key": "value2"})
         self.assertNotEqual(node.props_to_html(), node2.props_to_html())
 
     def test_props_to_html_none(self):
-        node = HTMLNode("tag1", "value1", "children1", None)
-        node2 = HTMLNode("tag1", "value1", "children1", {})
+        node = HTMLNode("tag1", "value1", None, None)
+        node2 = HTMLNode("tag1", "value1", None, {})
         self.assertEqual(node.props_to_html(), node2.props_to_html())
     
     ### LeafNode tests
@@ -63,23 +63,7 @@ class TestHTMLNode(unittest.TestCase):
         parent_node = ParentNode(None, [child_node])
         with self.assertRaises(ValueError):
             parent_node.to_html()
-
-    def test_markdown_to_html_node_paragraphs(self):
-        md = """
-This is **bolded** paragraph
-text in a p
-tag here
-
-This is another paragraph with _italic_ text and `code` here
-
-"""
-
-        node = markdown_to_html_node(md)
-        html = node.to_html()
-        self.assertEqual(
-            html,
-            "<div><p>This is <b>bolded</b> paragraph text in a p tag here</p><p>This is another paragraph with <i>italic</i> text and <code>code</code> here</p></div>",
-        )
+        
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,3 +1,4 @@
+from __future__ import annotations
 from enum import Enum
 from htmlnode import LeafNode
 
@@ -10,12 +11,14 @@ class TextType(Enum):
     IMAGE = "image"
 
 class TextNode:
-    def __init__(self, text, text_type: TextType, url=None):
-        self.text: str = text
+    def __init__(self, text: str, text_type: TextType, url: str | None = None):
+        self.text = text
         self.text_type: TextType = text_type
-        self.url: str = url
+        self.url = url
     
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, TextNode):
+            return False
         return (
             self.text == other.text and
             self.text_type == other.text_type and
@@ -25,19 +28,19 @@ class TextNode:
     def __repr__(self):
         return f"TextNode(\"{self.text}\", {self.text_type}, {'\"' + self.url + '\"' if self.url else None})"
 
-    def to_html_node(self):
-        match self.text_type:
+def text_node_to_html_node(text_node: TextNode):
+    match text_node.text_type:
             case TextType.TEXT:
-                return LeafNode(None, self.text)
+                return LeafNode(None, text_node.text)
             case TextType.BOLD:
-                return LeafNode("b", self.text)
+                return LeafNode("b", text_node.text)
             case TextType.ITALIC:
-                return LeafNode("i", self.text)
+                return LeafNode("i", text_node.text)
             case TextType.CODE:
-                return LeafNode("code", self.text)
+                return LeafNode("code", text_node.text)
             case TextType.LINK:
-                return LeafNode("a", self.text, {"href": self.url})
+                return LeafNode("a", text_node.text, {"href": text_node.url})
             case TextType.IMAGE:
-                return LeafNode("img", "", {"src": self.url, "alt": self.text})
+                return LeafNode("img", "", {"src": text_node.url, "alt": text_node.text})
             case _:
-                raise Exception("Invalid text type")
+                raise ValueError(f"invalid text type: {text_node.text_type}")

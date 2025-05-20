@@ -1,9 +1,9 @@
 import unittest
-from src.blocks import BlockType, block_to_blocktype, markdown_to_blocks
+from src.blocks import BlockType, block_to_blocktype, markdown_to_blocks, markdown_to_html_node
 
 class TestBlocks(unittest.TestCase):
     def test_markdown_to_blocks(self):
-            md = """
+        md = """
 This is **bolded** paragraph
 
 This is another paragraph with _italic_ text and `code` here
@@ -12,16 +12,17 @@ This is the same paragraph on a new line
 - This is a list
 - with items
 """
-            blocks = markdown_to_blocks(md)
-            self.assertEqual(
-                blocks,
-                [
-                    "This is **bolded** paragraph",
-                    "This is another paragraph with _italic_ text and `code` here\nThis is the same paragraph on a new line",
-                    "- This is a list\n- with items",
-                ],
-            )
+        blocks = markdown_to_blocks(md)
+        self.assertEqual(
+            blocks,
+            [
+                "This is **bolded** paragraph",
+                "This is another paragraph with _italic_ text and `code` here\nThis is the same paragraph on a new line",
+                "- This is a list\n- with items",
+            ],
+        )
     
+    #region block_to_blocktype
     def test_block_to_blocktype_paragraph(self):
         paragraph = "This is a paragraph."
         self.assertEqual(block_to_blocktype(paragraph), BlockType.PARAGRAPH)
@@ -100,3 +101,79 @@ This is not a list item
 4. Item 3
 """
         self.assertEqual(block_to_blocktype(ordered_list), BlockType.PARAGRAPH)
+    #endregion
+
+    #region markdown_to_html_node
+    def test_markdown_to_html_node_paragraph(self):
+        md = """
+This is **bolded** paragraph
+text in a p
+tag here
+
+"""
+        node = markdown_to_html_node(md)
+        html = node.to_html()
+        self.assertEqual(
+            html,
+            "<div><p>This is <b>bolded</b> paragraph text in a p tag here</p></div>",
+        )
+
+    def test_markdown_to_html_node_paragraphs(self):
+        md = """
+This is **bolded** paragraph
+text in a p
+tag here
+
+This is another paragraph with _italic_ text and `code` here
+
+"""
+        node = markdown_to_html_node(md)
+        html = node.to_html()
+        self.assertEqual(
+            html,
+            "<div><p>This is <b>bolded</b> paragraph text in a p tag here</p><p>This is another paragraph with <i>italic</i> text and <code>code</code> here</p></div>",
+        )
+
+    def test_markdown_to_html_node_headings(self):
+        md = """
+# this is an h1
+
+this is paragraph text
+
+## this is an h2
+"""
+        node = markdown_to_html_node(md)
+        html = node.to_html()
+        self.assertEqual(
+            html,
+            "<div><h1>this is an h1</h1><p>this is paragraph text</p><h2>this is an h2</h2></div>",
+        )
+
+    def test_markdown_to_html_node_unordered_lists(self):
+        md = """
+- Normal Item 1
+- Normal Item 2
+- Italic _Item 3_
+
+"""
+        node = markdown_to_html_node(md)
+        html = node.to_html()
+        self.assertEqual(
+            html,
+            "<div><ul><li>Normal Item 1</li><li>Normal Item 2</li><li>Italic <i>Item 3</i></li></ul></div>",
+        )
+
+    def test_markdown_to_html_node_ordered_lists(self):
+        md = """
+1. Normal Item 1
+2. Normal Item 2
+3. Bolded _Item 3_
+
+"""
+        node = markdown_to_html_node(md)
+        html = node.to_html()
+        self.assertEqual(
+            html,
+            "<div><ol><li>Normal Item 1</li><li>Normal Item 2</li><li>Bolded <i>Item 3</i></li></ol></div>",
+        )
+    #endregion
