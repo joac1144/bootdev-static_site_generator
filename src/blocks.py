@@ -34,7 +34,7 @@ def block_to_blocktype(block: str):
         return BlockType.QUOTE
     elif all(re.match(r"^- ", line) for line in lines):
         return BlockType.UNORDERED_LIST
-    elif all(re.match(rf"^{i + 1}\. ", line) for i, line in enumerate(block.strip().split("\n"))):
+    elif all(re.match(rf"^{i + 1}\. ", line) for i, line in enumerate(lines)):
         return BlockType.ORDERED_LIST
     else:
         return BlockType.PARAGRAPH
@@ -95,7 +95,7 @@ def quote_to_html_node(block: str):
     lines = block.split("\n")
     new_lines: list[str] = []
     for line in lines:
-        if not line.startswith("> "):
+        if not line.startswith(">"):
             raise Exception("Invalid quote block")
         new_lines.append(line.lstrip(">").strip())
     text = "\n".join(new_lines)
@@ -116,3 +116,12 @@ def ordered_list_to_html_node(block: str):
         text = line[3:]
         html_items.append(ParentNode("li", text_to_children(text)))
     return ParentNode("ol", html_items)
+
+def extract_title(markdown: str):
+    blocks = markdown_to_blocks(markdown)
+    for block in blocks:
+        if block.startswith("# "):
+            block = block.lstrip("#")
+            block = block.strip()
+            return block
+    raise Exception("No h1 header found in markdown")

@@ -1,8 +1,51 @@
 import os
 import shutil
 
+from blocks import extract_title
+from blocks import markdown_to_html_node
+
 def main():
     copy_files("static", "public")
+
+    generate_pages_recursive("content", "template.html", "public")
+
+
+def generate_pages_recursive(dir_path_content: str, template_path: str, dest_dir_path: str):
+    content_elements = os.listdir(dir_path_content)
+    print(f"dir_path_content: \"{dir_path_content}\", elements: ", content_elements)
+    for element in content_elements:
+        element_path = os.path.join(dir_path_content, element)
+        print(f"Looking at \"{element_path}\"")
+        if os.path.isfile(element_path) and element.endswith(".md"):
+            file_name = element.split(".")[0]
+            dest_file_path = os.path.join(dest_dir_path, file_name + ".html")
+            generate_page(element_path, template_path, dest_file_path)
+        if os.path.isdir(element_path):
+            dest_element_path = os.path.join(dest_dir_path, element)
+            os.makedirs(dest_element_path)
+            generate_pages_recursive(element_path, template_path, dest_element_path)
+
+
+def generate_page(from_path: str, template_path: str, dest_path: str):
+    print(f"Generating page from {from_path} to {dest_path} using {template_path}")
+    if not os.path.exists(from_path):
+        raise Exception("from_path does not exist")
+    file = open(from_path)
+    md = file.read()
+    file.close()
+    file = open(template_path)
+    template = file.read()
+    file.close()
+
+    html = markdown_to_html_node(md).to_html()
+    title = extract_title(md)
+
+    page_content = template.replace("{{ Title }}", title)
+    page_content = page_content.replace("{{ Content }}", html)
+
+    with open(dest_path, "w") as file:
+        file.write(page_content)
+
 
 def copy_files(src_dir: str, dest_dir: str):
     # Make sure both src_dir and dest_dir exist
@@ -12,11 +55,11 @@ def copy_files(src_dir: str, dest_dir: str):
         raise Exception("dest_dir does not exist")
 
     src_dir_elements = os.listdir(src_dir)
-    print(f"src directory: \"{src_dir}\", elements: ", src_dir_elements)
+    print(f"src directory: \"{src_dir}\", elements: {src_dir_elements}")
 
     # Delete all content from destination directory
     dest_dir_elements = os.listdir(dest_dir)
-    print(f"dest directory: \"{dest_dir}\", elements", dest_dir_elements)
+    print(f"dest directory: \"{dest_dir}\", elements: {dest_dir_elements}")
     delete_content(dest_dir)
 
     # Copy everything from src to dest

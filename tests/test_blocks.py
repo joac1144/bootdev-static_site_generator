@@ -1,5 +1,5 @@
 import unittest
-from src.blocks import BlockType, block_to_blocktype, markdown_to_blocks, markdown_to_html_node
+from src.blocks import BlockType, block_to_blocktype, markdown_to_blocks, markdown_to_html_node, extract_title
 
 class TestBlocks(unittest.TestCase):
     def test_markdown_to_blocks(self):
@@ -177,3 +177,13 @@ this is paragraph text
             "<div><ol><li>Normal Item 1</li><li>Normal Item 2</li><li>Bolded <i>Item 3</i></li></ol></div>",
         )
     #endregion
+
+    def test_extract_title_with_title(self):
+        md = "# Hello\n\nThis is a paragraph\n\n- this is a list item\n- this is another list item"
+        title = extract_title(md)
+        self.assertEqual("Hello", title)
+
+    def test_extract_title_no_title(self):
+        md = "### Hello\n\nThis is a paragraph\n\n- this is a list item\n- this is another list item"
+        with self.assertRaises(Exception):
+            extract_title(md)
