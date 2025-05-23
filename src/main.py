@@ -1,16 +1,20 @@
+import sys
 import os
 import shutil
 
-from blocks import extract_title
-from blocks import markdown_to_html_node
+from blocks import extract_title, markdown_to_html_node
 
 def main():
-    copy_files("static", "public")
+    basepath = "/"
+    if len(sys.argv) > 1:
+        basepath = sys.argv[1]
 
-    generate_pages_recursive("content", "template.html", "public")
+    copy_files("static", "docs")
+
+    generate_pages_recursive(basepath, "content", "template.html", "docs")
 
 
-def generate_pages_recursive(dir_path_content: str, template_path: str, dest_dir_path: str):
+def generate_pages_recursive(basepath: str, dir_path_content: str, template_path: str, dest_dir_path: str):
     content_elements = os.listdir(dir_path_content)
     print(f"dir_path_content: \"{dir_path_content}\", elements: ", content_elements)
     for element in content_elements:
@@ -19,14 +23,14 @@ def generate_pages_recursive(dir_path_content: str, template_path: str, dest_dir
         if os.path.isfile(element_path) and element.endswith(".md"):
             file_name = element.split(".")[0]
             dest_file_path = os.path.join(dest_dir_path, file_name + ".html")
-            generate_page(element_path, template_path, dest_file_path)
+            generate_page(basepath, element_path, template_path, dest_file_path)
         if os.path.isdir(element_path):
             dest_element_path = os.path.join(dest_dir_path, element)
             os.makedirs(dest_element_path)
-            generate_pages_recursive(element_path, template_path, dest_element_path)
+            generate_pages_recursive(basepath, element_path, template_path, dest_element_path)
 
 
-def generate_page(from_path: str, template_path: str, dest_path: str):
+def generate_page(basepath: str, from_path: str, template_path: str, dest_path: str):
     print(f"Generating page from {from_path} to {dest_path} using {template_path}")
     if not os.path.exists(from_path):
         raise Exception("from_path does not exist")
@@ -42,6 +46,8 @@ def generate_page(from_path: str, template_path: str, dest_path: str):
 
     page_content = template.replace("{{ Title }}", title)
     page_content = page_content.replace("{{ Content }}", html)
+    page_content = page_content.replace("href=\"/", f"href=\"{basepath}")
+    page_content = page_content.replace("src=\"/", f"src=\"{basepath}")
 
     with open(dest_path, "w") as file:
         file.write(page_content)
